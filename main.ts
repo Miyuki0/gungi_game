@@ -1,5 +1,9 @@
 class Piece{
-    constructor(public color: string, public type: string, public canBeStacked: boolean, public isStacked: boolean, public subPieces: Piece[]){}
+    public maxTier: number;
+
+    constructor(public color: string, public type: string, public canBeStacked: boolean, public isStacked: boolean, public subPieces: Piece[]){
+        this.maxTier = 3;
+    }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
         throw new Error("Method 'isValidMove' must be implemented.");
@@ -22,7 +26,7 @@ class Piece{
         this.subPieces.push(piece);
         this.subPieces.push(piece.subPieces)
 
-        if (this.getTier() == MAX_TIER){
+        if (this.getTier() == this.maxTier){
             this.canBeStacked = false
         }
     }
@@ -31,9 +35,10 @@ class Piece{
 class Marshall extends Piece{
     constructor(color: string){
         super(color, "Marshall", false, false, []);
+        this.maxTier = 1;
     }
 
-    isValidMove(start: [number, number], end: [number, number]): boolean{
+    isValidMove(start: [number, number], end: [number, number]): boolean {
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
         const rowDifference = Math.abs(startRow - endRow);
@@ -49,10 +54,27 @@ class Pawn extends Piece{
     }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT2(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
 
         return startCol == endCol && (startRow - endRow) == 1;
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const colDifference = Math.abs(startCol - endCol)
+
+        return colDifference <= 1 && (startRow - endRow) == 1;
     }
 }
 
@@ -62,10 +84,41 @@ class Spy extends Piece{
     }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT3(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
 
         return startCol == endCol && (startRow - endRow) == 1;
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return rowDifference == 1 && colDifference == 1;
+    }
+
+    private isValidMoveT3(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return (
+            (startCol == endCol) ||
+            (startRow == endRow) ||
+            (rowDifference == colDifference)
+        )
     }
 }
 
@@ -75,6 +128,15 @@ class Cannon extends Piece{
     }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT3(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
 
@@ -86,11 +148,35 @@ class Cannon extends Piece{
             (startRow == endRow && colDifference == 1)
             )
     }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return (
+            (startCol == endCol && rowDifference <= 2) ||
+            (startRow == endRow && colDifference <= 2)
+        )
+    }
+
+    private isValidMoveT3(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+
+        return (
+            (startCol == endCol) ||
+            (startRow == endRow)
+        )
+    }
 }
 
 class Fortress extends Piece{
     constructor(color: string){
         super(color, "Fortress", false, false, []);
+        this.maxTier = 1;
     }
 
     canStackOnTopOf(Piece piece){
@@ -113,12 +199,39 @@ class Samurai extends Piece{
     }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT3(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
         const rowDifference = Math.abs(startRow - endRow);
         const colDifference = Math.abs(startCol - endCol);
 
         return rowDifference == 1 && colDifference == 1;
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return rowDifference == 2 && colDifference == 2;
+    }
+
+    private isValidMoveT3(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return rowDifference == colDifference;
     }
 }
 
@@ -128,12 +241,25 @@ class Captain extends Piece{
     }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT2(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
         const rowDifference = Math.abs(startRow - endRow);
         const colDifference = Math.abs(startCol - endCol);
 
         return rowDifference <= 1 && colDifference <= 1;
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        return this.subPieces[0].isValidMove(start, end)
     }
 }
 
@@ -143,10 +269,33 @@ class Musketeer extends Piece{
     }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT3(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
 
         return startCol == endCol && (startRow - endRow) == 1;
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+
+        return startCol == endCol && (startRow - endRow) <= 2;
+    }
+
+    private isValidMoveT3(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+
+        return startCol == endCol && startRow > endRow;
     }
 }
 
@@ -156,14 +305,46 @@ class Knight extends Piece{
     }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT3(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
-        const rowDifference = Math.abs(startRow - endRow);
         const colDifference = Math.abs(startCol - endCol);
 
         return (
             (startRow == endRow && colDifference == 1) ||
             (startRow - endRow == 2 && colDifference == 1)
+            )
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const colDifference = Math.abs(startCol - endCol);
+
+        return (
+            (startRow - endRow == 1 && colDifference == 2) ||
+            (startRow - endRow == 2 && colDifference == 1)
+            )
+    }
+
+    private isValidMoveT3(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const colDifference = Math.abs(startCol - endCol);
+
+        return (
+            (startRow - endRow == 1 && colDifference == 2) ||
+            (startRow - endRow == 2 && colDifference == 1) ||
+            (endRow - startRow== 1 && colDifference == 2) ||
+            (endRow - startRow== 2 && colDifference == 1)
             )
     }
 }
@@ -174,12 +355,39 @@ class Archer extends Piece{
     }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT3(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
         const rowDifference = Math.abs(startRow - endRow);
         const colDifference = Math.abs(startCol - endCol);
 
-        return rowDifference <= 1 && colDifference <= 1;
+        return rowDifference == 1 && colDifference == 1;
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return rowDifference == 2 && colDifference == 2;
+    }
+
+    private isValidMoveT3(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return rowDifference == 3 && colDifference == 3;
     }
 }
 
@@ -189,6 +397,130 @@ class General extends Piece{
     }
 
     isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT3(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return (
+            (rowDifference <= 1 && colDifference <= 1) &&
+            !(endRow - startRow == 1 && colDifference == 1)
+        )
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return rowDifference == 1 && colDifference == 1
+    }
+
+    private isValidMoveT3(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return (
+            (rowDifference == 1 && colDifference == 1) ||
+            (colDifference <= 1 && startCol - endCol == 2)
+        )
+    }
+}
+
+class LieutenantGeneral extends Piece{
+    constructor(color: string){
+        super(color, "Lieutenant General", true, false, []);
+    }
+
+    isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT3(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return (
+            (rowDifference == 1 && colDifference <= 1) &&
+            !(endRow - startRow == 1 && colDifference != 1)
+        );
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return rowDifference == 1 && colDifference <= 1;
+    }
+
+        private isValidMoveT3(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return rowDifference <= 1 && colDifference <= 1;
+    }
+}
+
+class MajorGeneral extends Piece{
+    constructor(color: string){
+        super(color, "Major General", true, false, []);
+    }
+
+    isValidMove(start: [number, number], end: [number, number]): boolean{
+        switch (this.getTier()) {
+            case (1): return this.isValidMoveT1(start, end);
+            case (2): return this.isValidMoveT2(start, end);
+            case (3): return this.isValidMoveT3(start, end);
+            default: return false
+        }
+    }
+
+    private isValidMoveT1(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const colDifference = Math.abs(startCol - endCol);
+
+        return (
+            (colDifference == 1 && startRow - endRow == 1)
+        );
+    }
+
+    private isValidMoveT2(start: [number, number], end: [number, number]): boolean{
+        const [startRow, startCol] = start;
+        const [endRow, endCol] = end;
+        const rowDifference = Math.abs(startRow - endRow);
+        const colDifference = Math.abs(startCol - endCol);
+
+        return (
+            (rowDifference == 1 && colDifference <= 1) &&
+            !(endRow - startRow == 1 && colDifference != 1)
+        );
+    }
+
+    private isValidMoveT3(start: [number, number], end: [number, number]): boolean{
         const [startRow, startCol] = start;
         const [endRow, endCol] = end;
         const rowDifference = Math.abs(startRow - endRow);
@@ -201,43 +533,7 @@ class General extends Piece{
     }
 }
 
-class LieutenantGeneral extends Piece{
-    constructor(color: string){
-        super(color, "Lieutenant General", true, false, []);
-    }
-
-    isValidMove(start: [number, number], end: [number, number]): boolean{
-        const [startRow, startCol] = start;
-        const [endRow, endCol] = end;
-        const rowDifference = Math.abs(startRow - endRow);
-        const colDifference = Math.abs(startCol - endCol);
-
-        return (
-            (rowDifference == 1 && colDifference <= 1) &&
-            !(endRow - startRow == 1 && colDifference != 1)
-        );
-    }
-}
-
-class MajorGeneral extends Piece{
-    constructor(color: string){
-        super(color, "Major General", true, false, []);
-    }
-
-    isValidMove(start: [number, number], end: [number, number]): boolean{
-        const [startRow, startCol] = start;
-        const [endRow, endCol] = end;
-        const rowDifference = Math.abs(startRow - endRow);
-        const colDifference = Math.abs(startCol - endCol);
-
-        return (
-            (colDifference == 1 && startRow - endRow == 1)
-        );
-    }
-}
-
 const MAX_PIECES_BY_PLAYER = 26;
-const MAX_TIER = 3;
 
 class Board {
     private board: (Piece | null)[][];
