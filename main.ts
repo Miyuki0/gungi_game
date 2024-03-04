@@ -17,11 +17,11 @@ class Piece{
         return this.subPieces.length + 1;
     }
 
-    canStackOnTopOf(Piece piece){
+    canStackOnTopOf(piece:Piece){
         return piece.canBeStacked;
     }
 
-    stackOnTopOf(Piece piece){
+    stackOnTopOf(piece:Piece){
         piece.getStacked()
         this.subPieces.push(piece);
         this.subPieces.push(piece.subPieces)
@@ -179,7 +179,7 @@ class Fortress extends Piece{
         this.maxTier = 1;
     }
 
-    canStackOnTopOf(Piece piece){
+    canStackOnTopOf(piece:Piece){
         return false;
     }
 
@@ -536,10 +536,58 @@ class MajorGeneral extends Piece{
 const MAX_PIECES_BY_PLAYER = 26;
 
 class Board {
+    private BOARD_SIZE: number = 8;
     private board: (Piece | null)[][];
 
+
     constructor() {
-        this.board = Array(8).fill(null).map(() => Array(8).fill(null));
+        this.board = Array(this.BOARD_SIZE).fill(null).map(() => Array(this.BOARD_SIZE).fill(null));
+    }
+
+    public canPlacePiece(x:number, y:number): boolean{
+        return this.board[x][y] != null;
+    }
+
+    public placePiece(piece:Piece, stock:Piece[], x:number, y:number){
+        this.board[x][y] = piece;
+        // to-do remove piece from stock
+    }
+
+    public movePiece(piece: Piece, x:number, y:number){
+        if (this.board[x][y] == null){
+            this.board[x][y] = piece;
+        } else {
+            let defPiece:Piece = this.board[x][y]
+            if (defPiece.getTier() == 3){
+                // only 'kill' the top of the tower
+                this.board[x][y] = defPiece.subPieces[0];
+            } else {
+                // player can choose to attack or to stack
+                let action=""
+                if (action == "stack"){
+                    piece.stackOnTopOf(defPiece)
+                    // skin edit
+                    this.board[x][y] = piece;
+                } else {
+                    // attack mode 
+                    if (defPiece.getTier() > 1){
+                        this.board[x][y] = defPiece.subPieces[0];
+                    } else {
+                        this.board[x][y] = piece
+                    }
+                }
+            }
+        }
+    }
+
+    public highlightMoves(piece: Piece, x:number, y:number){
+        for (let row = 0; row < this.BOARD_SIZE; row++) {
+                for (let col = 0; col < this.BOARD_SIZE; col++) {
+                    if (piece.isValidMove([x, y], [row, col])) {
+                        // valid
+                    }
+                }
+            }
     }
 }
 
@@ -561,10 +609,70 @@ class Main {
             return grid;
         }
 
-        console.log(generateMoveGrid(new MajorGeneral("")));
+        
+        // 38 pieces by player
+
+        let blackPiecesStock = [new Marshall("black")];
+        let whitePiecesStock = [new Marshall("white")];
+
+    // Factory function to create pieces
+    function createPiece(type: string, color: string): any {
+        switch (type) {
+            case "MajorGeneral":
+                return new MajorGeneral(color);
+            case "LieutenantGeneral":
+                return new LieutenantGeneral(color);
+            case "General": 
+                return new General(color);
+            case "Archer": 
+                return new Archer(color);
+            case "Knight":
+                return new Knight(color);
+            case "Musketeer":
+                return new Musketeer(color);
+            case "Captain":
+                return new Captain(color);
+            case "Samurai":
+                return new Samurai(color);
+            case "Fortress":
+                return new Fortress(color);
+            case "Cannon":
+                return new Cannon(color);
+            case "Spy":
+                return new Spy(color);
+            case "Pawn":
+                return new Pawn(color);
+            case "Marshall":
+                return new Marshall(color);                
+            default:
+                throw new Error(`Invalid piece type: ${type}`);
+        }
+    }
+
+        function addPiecesToStock(pieceType: string, count: number) {
+            for (let i = 0; i < count; i++) {
+                blackPiecesStock.push(createPiece(pieceType, "black"));
+                whitePiecesStock.push(createPiece(pieceType, "white"));
+            }
+        }
+
+        addPiecesToStock("Marshall", 1);
+        addPiecesToStock("Pawn", 9);
+        addPiecesToStock("Spy", 2);
+        addPiecesToStock("Cannon", 2);
+        addPiecesToStock("Fortress", 2);
+        addPiecesToStock("Samurai", 2);
+        addPiecesToStock("Captain", 1);
+        addPiecesToStock("Musketeer", 1);
+        addPiecesToStock("Knight", 2);
+        addPiecesToStock("Archer", 2);
+        addPiecesToStock("General", 6);
+        addPiecesToStock("LieutenantGeneral", 4);
+        addPiecesToStock("MajorGeneral", 4);
 
     }
 }
 
 // Call the main function
 Main.main();
+
